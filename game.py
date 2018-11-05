@@ -4,6 +4,7 @@ import pygame
 from pygame import key
 from pygame.locals import *
 
+# Marcus was here
 
 def sign(x):
     """Returns the sign of the number given"""
