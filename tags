@@ -1,12 +1,12 @@
 !_TAG_FILE_SORTED	2	/0=unsorted, 1=sorted, 2=foldcase/
 accel	/home/dmitry/work/robotapocalypse/game.py	/^accel = 0.8  # character's acceleration$/;"	v	language:Python
-background	/home/dmitry/work/robotapocalypse/game.py	/^background = pygame.image.load("background.png")$/;"	v	language:Python
+background	/home/dmitry/work/robotapocalypse/game.py	/^background = pygame.image.load("assets\/Background.png")$/;"	v	language:Python
 bounciness	/home/dmitry/work/robotapocalypse/game.py	/^bounciness = 0.01  # bounciness of the level floor$/;"	v	language:Python
-char	/home/dmitry/work/robotapocalypse/game.py	/^char = pygame.image.load("pixelguy@2x.png")  # the character sprite$/;"	v	language:Python
+char	/home/dmitry/work/robotapocalypse/game.py	/^char = pygame.image.load("assets\/pixelguy@2x.png")  # the character sprite$/;"	v	language:Python
 char_rect	/home/dmitry/work/robotapocalypse/game.py	/^char_rect = char.get_rect()$/;"	v	language:Python
 fps	/home/dmitry/work/robotapocalypse/game.py	/^fps = 60  # target fps which determines general game speed$/;"	v	language:Python
 friction	/home/dmitry/work/robotapocalypse/game.py	/^friction = 0.2  # friction of the level floor$/;"	v	language:Python
-gravity	/home/dmitry/work/robotapocalypse/game.py	/^gravity = 1\/3  # gravity constant$/;"	v	language:Python
+gravity	/home/dmitry/work/robotapocalypse/game.py	/^gravity = 1\/2  # gravity constant$/;"	v	language:Python
 jumps	/home/dmitry/work/robotapocalypse/game.py	/^jumps = 0$/;"	v	language:Python
 jump_limit	/home/dmitry/work/robotapocalypse/game.py	/^jump_limit = 2  # maximum number of jumps the character can make$/;"	v	language:Python
 jump_velocity	/home/dmitry/work/robotapocalypse/game.py	/^jump_velocity = -12$/;"	v	language:Python

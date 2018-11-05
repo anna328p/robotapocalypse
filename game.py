@@ -15,7 +15,7 @@ size = width, height = 1280, 720   # window size
 velocity_x = 1  # velocity in the x axis, for the physics
 velocity_y = 0  # ditto for y
 fps = 60  # target fps which determines general game speed
-gravity = 1/3  # gravity constant
+gravity = 1/2  # gravity constant
 white = 255, 255, 255  # background color
 bounciness = 0.01  # bounciness of the level floor
 friction = 0.2  # friction of the level floor
@@ -29,10 +29,10 @@ jump_velocity = -12
 
 screen = pygame.display.set_mode(size)
 
-char = pygame.image.load("pixelguy@2x.png")  # the character sprite
+char = pygame.image.load("assets/pixelguy@2x.png")  # the character sprite
 char_rect = char.get_rect()
 
-background = pygame.image.load("background.png")
+background = pygame.image.load("assets/Background.png")
 
 while 1:
     for event in pygame.event.get():  # event processing
