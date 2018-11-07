@@ -12,7 +12,7 @@ def sign(x):
 
 pygame.init()
 
-size = width, height = 1280, 720   # window size
+size = width, height = 900, 600   # window size
 velocity_x = 1  # velocity in the x axis, for the physics
 velocity_y = 0  # ditto for y
 fps = 60  # target fps which determines general game speed
@@ -22,7 +22,7 @@ bounciness = 0.01  # bounciness of the level floor
 friction = 0.2  # friction of the level floor
 last_touched = False  # temp variable
 movements = {"left": False, "right": False, "up": False}  # keep track of whether we are moving and where
-accel = 0.8  # character's acceleration
+accel = 1  # character's acceleration
 top_speed = 8  # character's top speed
 jumps = 0
 jump_limit = 2  # maximum number of jumps the character can make
@@ -33,7 +33,7 @@ screen = pygame.display.set_mode(size)
 char = pygame.image.load("assets/pixelguy@2x.png")  # the character sprite
 char_rect = char.get_rect()
 
-background = pygame.image.load("assets/Background.png")
+background = pygame.image.load("assets/Background@6x.png")
 
 while 1:
     for event in pygame.event.get():  # event processing
@@ -95,7 +95,8 @@ while 1:
     char_rect = char_rect.move([velocity_x, velocity_y])
 
     screen.fill(white)
+    screen.blit(background, (0,0))
     screen.blit(char, char_rect)
     pygame.display.flip()
 
-    pygame.time.Clock().tick(60)
+    pygame.time.Clock().tick(120)
