@@ -16,6 +16,7 @@ class Direction(Enum):
     RIGHT = 1
     DOWN = 2
     LEFT = 3
+    NONE = 4
 
 
 friction = 0.2
@@ -51,13 +52,17 @@ class Object(sprite.Sprite):
     def is_colliding(self, crect, direction):
         """Detects external collisions with a rect"""
         if direction == Direction.UP:
-            return self.rect.top < crect.bottom
+            return self.rect.top < crect.bottom and \
+                (self.rect.right < crect.left or self.rect.left > crect.right)
         elif direction == Direction.LEFT:
-            return self.rect.left < crect.right
+            return self.rect.left < crect.right and \
+                (self.rect.bottom < crect.top or self.rect.top > crect.bottom)
         elif direction == Direction.RIGHT:
-            return self.rect.right > crect.left
+            return self.rect.right > crect.left and \
+                (self.rect.bottom < crect.top or self.rect.top > crect.bottom)
         elif direction == Direction.DOWN:
-            return self.rect.bottom > crect.top
+            return self.rect.bottom > crect.top and \
+                (self.rect.right < crect.left or self.rect.left > crect.right)
 
     def collide_internal(self, crect, direction):
         """Detects internal collisions with a rect"""
@@ -70,6 +75,14 @@ class Object(sprite.Sprite):
         elif direction == Direction.DOWN:
             return self.rect.bottom > crect.bottom
 
+    def collision(self):
+        self.collisions = {
+            Direction.LEFT: False,
+            Direction.RIGHT: False,
+            Direction.UP: False,
+            Direction.DOWN: False
+        }
+
 
 class Player(Object):
     def __init__(self, groups, img, accel, top_speed, jump_limit, jump_velocity):
@@ -80,24 +93,31 @@ class Player(Object):
         self.jump_velocity = jump_velocity
         self.jumps = 0
         self.movements = {
-            Direction.LEFT: False,
-            Direction.RIGHT: False,
-            Direction.UP: False
+            "direction": None,
+            "jumping": False
         }  # keep track of whether we are moving and where
+        self.last_direction = Direction.RIGHT
+        self.direction_before = Direction.RIGHT
 
-    def collision(self):
-        pass
 
     def update(self):
         # ...
-        if True not in [self.movements[Direction.RIGHT], self.movements[Direction.LEFT]]:
+        if self.movements['direction'] == None:
             self.xvel -= self.xvel * friction  # apply friction if the player is not moving
+            self.direction_before = self.last_direction
 
-        if self.movements[Direction.RIGHT]:
+        self.direction_before = self.last_direction
+
+        if self.movements['direction'] == Direction.RIGHT:
             self.xvel += self.accel
+            self.last_direction = Direction.RIGHT
 
-        if self.movements[Direction.LEFT]:
+        if self.movements['direction'] == Direction.LEFT:
             self.xvel -= self.accel
+            self.last_direction = Direction.LEFT
+
+        if self.direction_before != self.last_direction:
+            self.image = pygame.transform.flip(self.image, True, False)
 
         if abs(self.xvel) > self.top_speed:
             self.xvel = sign(self.xvel) * self.top_speed
@@ -115,8 +135,8 @@ class Player(Object):
             self.yvel = abs(self.yvel) * -bounciness
             self.jumps = 0
 
-        if self.movements[Direction.UP] and self.jumps < self.jump_limit:
-            self.movements[Direction.UP] = False
+        if self.movements["jumping"] and self.jumps < self.jump_limit:
+            self.movements["jumping"] = False
             self.yvel = self.jump_velocity
             self.jumps += 1
 
@@ -130,11 +150,17 @@ friction = 0.2  # friction of the level floor
 bounds = []
 solids = []
 
+
+def scaleup(surface, factor):
+    return pygame.transform.scale(surface, (surface.get_rect().width * factor, surface.get_rect().height * factor))
+
+
 def main():
+    """Runs the game main loop"""
+
     global bounds
     global solids
 
-    """Runs the game main loop"""
     pygame.init()
 
     size = width, height = 900, 600   # window size
@@ -150,41 +176,62 @@ def main():
     bounds = screen.get_rect()
     solids = collidegroup
 
+    charimg = scaleup(pygame.image.load("assets/Walking2.png"), 3)  # the character sprite
+
     char = Player(
-        groups = drawgroup,
-        img = pygame.image.load("assets/Walking2@3x.png"),  # the character sprite
-        accel = 1,
-        top_speed = 8,
-        jump_limit = 2,
-        jump_velocity = -12
+        groups=drawgroup,
+        accel=1,
+        img=charimg,
+        top_speed=8,
+        jump_limit=2,
+        jump_velocity=-12
     )
 
-    background = pygame.image.load("assets/Background@6x.png")
-    movements = {
+    background = scaleup(pygame.image.load("assets/Background.png"), 6)
+    
+    keys_pressed = {
         Direction.LEFT: False,
         Direction.RIGHT: False,
         Direction.UP: False
     }  # keep track of whether we are moving and where
 
+    movements = {
+        "direction": None,
+        "jumping": False
+    }
+
     while True:
         for game_event in pygame.event.get():  # event processing
-            print(game_event)
+            #print(game_event)
             if game_event.type == QUIT:
                 sys.exit()  # handle window close
             if game_event.type == KEYDOWN:  # handle key press down
                 k = game_event.key  # code of the key being pressed down
                 if k == K_SPACE or k == K_UP:  # jump
-                    movements[Direction.UP] = True
+                    keys_pressed[Direction.UP] = True
                 if k == K_LEFT:  # move left
-                    movements[Direction.LEFT] = True
+                    keys_pressed[Direction.LEFT] = True
                 if k == K_RIGHT:  # move right
-                    movements[Direction.RIGHT] = True
+                    keys_pressed[Direction.RIGHT] = True
             if game_event.type == KEYUP:  # handle key release
                 k = game_event.key  # code of the key being released
                 if k == K_LEFT:  # stop moving left
-                    movements[Direction.LEFT] = False
+                    keys_pressed[Direction.LEFT] = False
                 if k == K_RIGHT:  # stop moving right
-                    movements[Direction.RIGHT] = False
+                    keys_pressed[Direction.RIGHT] = False
+
+        if keys_pressed[Direction.UP]:
+            movements["jumping"] = True
+            keys_pressed[Direction.UP] = False
+
+        if keys_pressed[Direction.LEFT] and keys_pressed[Direction.RIGHT]:
+            movements["direction"] = None
+        elif keys_pressed[Direction.LEFT]:
+            movements["direction"] = Direction.LEFT
+        elif keys_pressed[Direction.RIGHT]:
+            movements["direction"] = Direction.RIGHT
+        else:
+            movements["direction"] = None
 
         char.movements = movements
 
