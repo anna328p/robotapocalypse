@@ -99,7 +99,8 @@ def main():
         screen.blit(char, char_rect)
         pygame.display.flip()
 
-        pygame.time.Clock().tick(fps)
+#        pygame.time.Clock().tick(fps)
+        sleep(1/fps)
 
 if __name__ == "__main__":
     main()
