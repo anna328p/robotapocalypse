@@ -1,58 +1,124 @@
+"""Game"""
+
+
 from time import sleep
 import sys
 import pygame
 from pygame import *
 from pygame.locals import *
+from enum import Enum
 
 # Marcus was here
 
-def sign(x):
+
+class Direction(Enum):
+    UP = 0
+    RIGHT = 1
+    DOWN = 2
+    LEFT = 3
+
+
+class Object(sprite.Sprite):
+    def __init__(self, groups, xpos, ypos, img):
+        super().__init__(groups)
+        self.xpos = xpos
+        self.ypos = ypos
+        self.image = img
+        self.rect = self.img.get_rect()
+        self.xvel = 0
+        self.yvel = 0
+
+    def tick(self):
+        """Ticks the object"""
+        self.rect = self.rect.move([self.xvel, self.yvel])
+
+
+class Player(Object):
+    def __init__(self, groups, img, accel, friction, top_speed, jump_limit, jump_velocity)
+        super().__init__(groups, 0, 0, img)
+        self.accel = accel
+        self.friction = friction
+        self.top_speed = top_speed
+        self.jump_limit = jump_limit
+        self.jump_velocity = jump_velocity
+        self.jumps = 0
+        self.movements = {"left": False, "right": False, "up": False}  # keep track of whether we are moving and where
+
+    def tick(self):
+        # ...
+        if True not in [self.movements['right'], self.movements['left']]:
+            xvel -= xvel * friction  # apply friction if the player is not moving
+
+        if self.movements['up'] and self.jumps < self.jump_limit:
+            self.movements['up'] = False
+            self.yvel = self.jump_velocity
+            self.jumps += 1
+
+        if self.movements['right']:
+            if self.xvel >= self.top_speed:
+                self.xvel = self.top_speed
+            else:
+                self.xvel += self.accel
+
+        if self.movements['left']:
+            if self.xvel <= -self.top_speed:
+                self.xvel = -self.top_speed
+            else:
+                self.xvel -= self.accel
+
+        self.yvel += gravity
+        super().tick()
+
+
+def sign(value):
     """Returns the sign of the number given"""
-    return 1 if x == abs(x) else -1
+    return 1 if value == abs(value) else -1
+
 
 def main():
+    """Runs the game main loop"""
     pygame.init()
 
     size = width, height = 900, 600   # window size
-    velocity_x = 1  # velocity in the x axis, for the physics
-    velocity_y = 0  # ditto for y
     fps = 120  # target fps which determines general game speed
     gravity = 3/4  # gravity constant
     white = 255, 255, 255  # background color
     bounciness = 0  # bounciness of the level floor
     friction = 0.2  # friction of the level floor
-    movements = {"left": False, "right": False, "up": False}  # keep track of whether we are moving and where
-    accel = 1  # character's acceleration
-    top_speed = 8  # character's top speed
-    jumps = 0
-    jump_limit = 2  # maximum number of jumps the character can make
-    jump_velocity = -12
 
     screen = pygame.display.set_mode(size)
 
-    char = pygame.image.load("assets/pixelguy@2x.png")  # the character sprite
-    char_rect = char.get_rect()
+    players = sprite.RenderClear()
+
+    char = Player(
+        groups = players,
+        img = pygame.image.load("assets/pixelguy@2x.png"),  # the character sprite
+        accel = 1,
+        top_speed = 8,
+        jump_limit = 2,
+        jump_velocity = -12
+    )
 
     background = pygame.image.load("assets/Background@6x.png")
 
-    while 1:
-        for event in pygame.event.get():  # event processing
-            print(event)
-            if event.type == pygame.QUIT:
+    while True:
+        for game_event in pygame.event.get():  # event processing
+            print(game_event)
+            if game_event.type == QUIT:
                 sys.exit()  # handle window close
-            if event.type == pygame.KEYDOWN:  # handle key press down
-                k = event.key  # code of the key being pressed down
-                if k == pygame.K_SPACE or k == pygame.K_UP:  # jump
+            if game_event.type == KEYDOWN:  # handle key press down
+                k = game_event.key  # code of the key being pressed down
+                if k == K_SPACE or k == K_UP:  # jump
                     movements['up'] = True
-                if k == pygame.K_LEFT:  # move left
+                if k == K_LEFT:  # move left
                     movements['left'] = True
-                if k == pygame.K_RIGHT:  # move right
+                if k == K_RIGHT:  # move right
                     movements['right'] = True
-            if event.type == pygame.KEYUP:  # handle key release
-                k = event.key  # code of the key being released
-                if k == pygame.K_LEFT:  # stop moving left
+            if game_event.type == KEYUP:  # handle key release
+                k = game_event.key  # code of the key being released
+                if k == K_LEFT:  # stop moving left
                     movements['left'] = False
-                if k == pygame.K_RIGHT:  # stop moving right
+                if k == K_RIGHT:  # stop moving right
                     movements['right'] = False
 
         if char_rect.left < 0 or char_rect.right > width:
@@ -62,45 +128,21 @@ def main():
             velocity_y = gravity  # fix getting stuck on top of the window
             char_rect = char_rect.move([0, -char_rect.top])  # fix flying above the window
 
-        if True not in [movements['right'], movements['left']]:
-            velocity_x -= velocity_x * friction  # apply friction if the player is not moving
 
         if char_rect.bottom > height:
-    #        char_rect.move([0, height-char_rect.bottom-15])  # fix underclipping
             if abs(velocity_y) > 0.5:
                 print("Bounced: %f" % velocity_y)
             velocity_y = abs(velocity_y) * -bounciness
-            #velocity_y = -1
+            # velocity_y = -1
             jumps = 0
 
-        if movements['up'] and jumps < jump_limit:
-            movements['up'] = False
-            velocity_y = jump_velocity
-            jumps += 1
-
-        if movements['right']:
-            if velocity_x >= top_speed:
-                velocity_x = top_speed
-            else:
-                velocity_x += accel
-
-        if movements['left']:
-            if velocity_x <= -top_speed:
-                velocity_x = -top_speed
-            else:
-                velocity_x -= accel
-
-        velocity_y += gravity
-
-        char_rect = char_rect.move([velocity_x, velocity_y])
-
         screen.fill(white)
-        screen.blit(background, (0,0))
-        screen.blit(char, char_rect)
+        screen.blit(background, (0, 0))
         pygame.display.flip()
 
 #        pygame.time.Clock().tick(fps)
         sleep(1/fps)
+
 
 if __name__ == "__main__":
     main()
